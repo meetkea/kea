@@ -118,14 +118,18 @@ private struct BrowserAccountView: View {
 
     var body: some View {
         Group {
-            if let session = state.webViewPool.existingSession(for: account.id) {
+            if state.isSessionOperationInProgress(for: account.id) {
+                ProgressView("Updating \(account.name)…")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if let session = state.webViewPool.existingSession(for: account.id) {
                 BrowserPane(session: session)
             } else {
                 ProgressView("Opening \(account.name)…")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .task(id: state.webViewPool.sessions[account.id] == nil) {
+        .task(id: state.isSessionOperationInProgress(for: account.id)) {
+            guard !state.isSessionOperationInProgress(for: account.id) else { return }
             guard state.webViewPool.existingSession(for: account.id) == nil else { return }
             _ = state.browserSession(for: account)
         }

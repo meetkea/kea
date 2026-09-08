@@ -67,8 +67,15 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
     }
 
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
-        state.errorMessage = "X stopped responding. Kea is reloading this account."
-        webView.reload()
+        KeaLogger.webView.notice("An account web process terminated; reloading only the affected view")
+        state.errorMessage = nil
+        state.isLoading = true
+
+        if webView.url != nil {
+            webView.reload()
+        } else {
+            webView.load(URLRequest(url: SafeXURL.home))
+        }
     }
 
     func webView(
@@ -134,6 +141,10 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
 
         let nsError = error as NSError
         if nsError.code == NSURLErrorCancelled { return }
-        state.errorMessage = "X could not load. Check your connection and try again."
+
+        KeaLogger.webView.error("A web navigation failed with code \(nsError.code, privacy: .public)")
+        if BrowserFailurePolicy.shouldShowNativeOverlay(for: nsError) {
+            state.errorMessage = "Unable to load X\n\nCheck your connection and try again."
+        }
     }
 }

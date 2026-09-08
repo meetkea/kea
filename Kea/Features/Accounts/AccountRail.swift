@@ -42,7 +42,9 @@ struct AccountRail: View {
                             }
                             Divider()
                             Button("Clear Session…") { clearSession(account) }
+                                .disabled(state.isSessionOperationInProgress(for: account.id))
                             Button("Remove Account…", role: .destructive) { remove(account) }
+                                .disabled(state.isSessionOperationInProgress(for: account.id))
                         }
                     }
                 }

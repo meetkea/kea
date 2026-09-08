@@ -17,7 +17,7 @@ struct KeaApp: App {
     }
 
     var body: some Scene {
-        WindowGroup {
+        Window("Kea", id: "main") {
             MainWindowView()
                 .environment(state)
                 .modelContainer(persistence.container)

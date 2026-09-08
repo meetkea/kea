@@ -8,13 +8,29 @@ enum SafeXURL {
     ])
 
     nonisolated private static let sensitivePrefixes = [
-        "/i/flow/login",
-        "/i/flow/signup",
+        "/i/flow/",
         "/i/oauth2",
+        "/oauth",
+        "/login",
+        "/logout",
+        "/signup",
+        "/password",
+        "/reset",
+        "/callback",
         "/account/access",
-        "/settings/security",
-        "/settings/password"
+        "/settings"
     ]
+
+    nonisolated private static let sensitiveQueryNames = Set([
+        "authorization",
+        "code",
+        "credential",
+        "oauth_token",
+        "password",
+        "session",
+        "state",
+        "token"
+    ])
 
     nonisolated static func restorableURL(from value: String?) -> URL {
         guard let value, let url = URL(string: value), isSafe(url) else {
@@ -39,7 +55,14 @@ enum SafeXURL {
         }
 
         let path = url.path.lowercased()
-        return !sensitivePrefixes.contains { path.hasPrefix($0) }
+        guard !sensitivePrefixes.contains(where: { path.hasPrefix($0) }) else {
+            return false
+        }
+
+        let queryNames = URLComponents(url: url, resolvingAgainstBaseURL: false)?
+            .queryItems?
+            .map { $0.name.lowercased() } ?? []
+        return !queryNames.contains(where: sensitiveQueryNames.contains)
     }
 
     nonisolated private static func sanitized(_ url: URL) -> URL? {

@@ -24,6 +24,14 @@ final class AccountBehaviorTests: XCTestCase {
         )
     }
 
+    func testRemovingSelectedFirstAccountChoosesFollowingAccount() {
+        let ids = [UUID(), UUID(), UUID()]
+        XCTAssertEqual(
+            AccountSelectionPolicy.replacementID(afterRemoving: ids[0], from: ids),
+            ids[1]
+        )
+    }
+
     func testRemovingSelectedLastAccountChoosesPreviousAccount() {
         let ids = [UUID(), UUID(), UUID()]
         XCTAssertEqual(
@@ -48,5 +56,29 @@ final class AccountBehaviorTests: XCTestCase {
 
         let restored = AppPreferences(defaults: defaults)
         XCTAssertEqual(restored.selectedAccountID, expected)
+    }
+
+    func testRelevantPreferencesPersist() throws {
+        let suiteName = "KeaTests-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let first = AppPreferences(defaults: defaults)
+        first.openLastAccount = false
+        first.restoreLastPage = false
+        first.openExternalLinks = false
+        first.appearance = .dark
+
+        let restored = AppPreferences(defaults: defaults)
+        XCTAssertFalse(restored.openLastAccount)
+        XCTAssertFalse(restored.restoreLastPage)
+        XCTAssertFalse(restored.openExternalLinks)
+        XCTAssertEqual(restored.appearance, .dark)
+    }
+
+    func testNewProfilesUseDifferentWebsiteDataStoreIdentifiers() {
+        let first = AccountProfile(name: "Personal", sortOrder: 0)
+        let second = AccountProfile(name: "Work", sortOrder: 1)
+        XCTAssertNotEqual(first.dataStoreIdentifier, second.dataStoreIdentifier)
     }
 }

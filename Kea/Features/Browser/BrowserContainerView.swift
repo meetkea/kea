@@ -2,17 +2,34 @@ import AppKit
 import SwiftUI
 import WebKit
 
+@MainActor
+final class WeakWebViewReference {
+    weak var webView: WKWebView?
+
+    init(_ webView: WKWebView) {
+        self.webView = webView
+    }
+}
+
 struct BrowserContainerView: NSViewRepresentable {
-    let webView: WKWebView
+    let reference: WeakWebViewReference
+
+    init(webView: WKWebView) {
+        reference = WeakWebViewReference(webView)
+    }
+
+    init(reference: WeakWebViewReference) {
+        self.reference = reference
+    }
 
     func makeNSView(context: Context) -> WebViewHost {
         let host = WebViewHost()
-        host.attach(webView)
+        host.attach(reference.webView)
         return host
     }
 
     func updateNSView(_ host: WebViewHost, context: Context) {
-        host.attach(webView)
+        host.attach(reference.webView)
     }
 
     static func dismantleNSView(_ host: WebViewHost, coordinator: Void) {
@@ -23,7 +40,11 @@ struct BrowserContainerView: NSViewRepresentable {
 final class WebViewHost: NSView {
     private weak var hostedWebView: WKWebView?
 
-    func attach(_ webView: WKWebView) {
+    func attach(_ webView: WKWebView?) {
+        guard let webView else {
+            detach()
+            return
+        }
         guard hostedWebView !== webView else { return }
         detach()
 
@@ -46,29 +67,36 @@ final class WebViewHost: NSView {
 }
 
 struct BrowserPane: View {
-    let session: BrowserSession
+    let state: BrowserState
+    private let webViewReference: WeakWebViewReference
+
+    init(session: BrowserSession) {
+        state = session.state
+        webViewReference = WeakWebViewReference(session.webView)
+    }
 
     var body: some View {
         ZStack(alignment: .top) {
-            BrowserContainerView(webView: session.webView)
+            BrowserContainerView(reference: webViewReference)
 
-            if session.state.isLoading {
+            if state.isLoading {
                 ProgressView()
                     .progressViewStyle(.linear)
                     .controlSize(.small)
                     .transition(.opacity)
             }
 
-            if let error = session.state.errorMessage, !session.state.isLoading {
+            if let error = state.errorMessage, !state.isLoading {
                 VStack(spacing: 12) {
                     Image(systemName: "wifi.exclamationmark")
                         .font(.system(size: 26))
                         .foregroundStyle(.secondary)
                     Text(error)
                         .multilineTextAlignment(.center)
-                    Button("Try Again") {
-                        session.webView.reload()
+                    Button("Retry") {
+                        webViewReference.webView?.reload()
                     }
+                    .accessibilityHint("Reloads X for this account")
                 }
                 .padding(24)
                 .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))

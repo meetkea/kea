@@ -2,6 +2,7 @@ import AppKit
 import SwiftUI
 
 struct AppCommands: Commands {
+    @Environment(\.openWindow) private var openWindow
     let state: AppState
 
     var body: some Commands {
@@ -18,6 +19,7 @@ struct AppCommands: Commands {
             }
 
             Button("Add Account…") {
+                openWindow(id: "main")
                 state.isPresentingAddAccount = true
             }
             .keyboardShortcut("a", modifiers: [.command, .shift])
@@ -36,14 +38,17 @@ struct AppCommands: Commands {
                 .disabled(state.activeSession?.state.canGoForward != true)
             Button("Reload") { state.reload() }
                 .keyboardShortcut("r", modifiers: .command)
-                .disabled(state.selectedAccount == nil)
+                .disabled(state.activeSession == nil)
             Divider()
             Button("Actual Size") { state.actualSize() }
                 .keyboardShortcut("0", modifiers: .command)
+                .disabled(state.activeSession == nil)
             Button("Zoom In") { state.zoomIn() }
                 .keyboardShortcut("+", modifiers: .command)
+                .disabled(state.activeSession == nil)
             Button("Zoom Out") { state.zoomOut() }
                 .keyboardShortcut("-", modifiers: .command)
+                .disabled(state.activeSession == nil)
         }
 
         CommandGroup(replacing: .help) {

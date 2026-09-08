@@ -57,6 +57,7 @@ private struct GeneralSettingsView: View {
 
 private struct AccountsSettingsView: View {
     @Environment(AppState.self) private var state
+    @Environment(\.openWindow) private var openWindow
     @State private var accountToRename: AccountProfile?
     @State private var pendingAction: SettingsAccountAction?
 
@@ -66,7 +67,10 @@ private struct AccountsSettingsView: View {
                 Text("Accounts")
                     .font(.title2.weight(.semibold))
                 Spacer()
-                Button("Add Account") { state.isPresentingAddAccount = true }
+                Button("Add Account") {
+                    openWindow(id: "main")
+                    state.isPresentingAddAccount = true
+                }
             }
 
             if state.accounts.isEmpty {
@@ -90,12 +94,15 @@ private struct AccountsSettingsView: View {
                         Menu {
                             Button("Rename…") { accountToRename = account }
                             Button("Clear Session…") { pendingAction = .clear(account) }
+                                .disabled(state.isSessionOperationInProgress(for: account.id))
                             Button("Remove Account…", role: .destructive) { pendingAction = .remove(account) }
+                                .disabled(state.isSessionOperationInProgress(for: account.id))
                         } label: {
                             Image(systemName: "ellipsis.circle")
                         }
                         .menuStyle(.borderlessButton)
                         .fixedSize()
+                        .accessibilityLabel("Actions for \(account.name)")
                     }
                 }
             }
@@ -152,9 +159,16 @@ private struct AboutSettingsView: View {
                 .font(.title3)
             Text("A free, open-source multi-account client for X on macOS.")
                 .foregroundStyle(.secondary)
+            Text("Kea is an independent open-source project and is not affiliated with X.")
+                .font(.footnote)
+                .foregroundStyle(.tertiary)
+                .multilineTextAlignment(.center)
 
             HStack {
                 Link("usekea.com", destination: AppLinks.website)
+                if let github = AppLinks.github {
+                    Link("GitHub", destination: github)
+                }
                 Link("Support Kea", destination: AppLinks.support)
             }
         }

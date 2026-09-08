@@ -1,12 +1,14 @@
+# Kea
+
+**App for X on Mac.**
+
+Kea is a free, open-source, native multi-account client for X on macOS.
+
+Stay signed in to multiple X accounts, switch between them instantly, and keep every account completely separate.
+
 <p align="center">
   <img src="Kea/Resources/Assets.xcassets/KeaLogo.imageset/KeaLogo.png" alt="Kea" width="420">
 </p>
-
-<h1 align="center">Kea</h1>
-
-<p align="center"><strong>App for X on Mac.</strong></p>
-
-Kea is a free, open-source, native multi-account client for X on macOS. It keeps every account in a separate persistent WebKit session, so you can sign in once, switch instantly, and manage personal, work, company, or community accounts from one place.
 
 > X owns the X interface. Kea owns the Mac experience.
 
@@ -22,7 +24,9 @@ Kea is a free, open-source, native multi-account client for X on macOS. It keeps
 
 ## Status
 
-Kea is an early macOS MVP. The native application foundation and core multi-account workflow are implemented. Distribution, signing, and release packaging are not finalized.
+Kea is preparing for an early public alpha. The core multi-account workflow is implemented and hardened, but signing, distribution, and manual end-to-end validation with multiple live X accounts are still in progress.
+
+Kea is an independent open-source project and is not affiliated with X.
 
 ## Requirements
 
@@ -59,6 +63,12 @@ Kea has no backend, telemetry, or analytics. It does not use the X API and never
 Issues and focused pull requests are welcome. Keep the app native, dependency-light, and within the ownership boundary: X owns the website interface; Kea owns the Mac account-switching experience.
 
 Before opening a pull request, run both the macOS build and unit tests shown above. Tests must not depend on live x.com responses.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+
+## License
+
+Kea is available under the [MIT License](LICENSE).
 
 ## Links
 

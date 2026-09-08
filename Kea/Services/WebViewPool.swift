@@ -72,6 +72,7 @@ final class WebViewPool {
             coordinator: coordinator
         )
         sessions[account.id] = session
+        KeaLogger.sessions.info("Created one isolated web view for an account")
         return session
     }
 
@@ -86,12 +87,17 @@ final class WebViewPool {
         session.webView.navigationDelegate = nil
         session.webView.uiDelegate = nil
         session.webView.removeFromSuperview()
+        KeaLogger.sessions.info("Released an account web view")
     }
 
     func deleteSession(for account: AccountProfile) async throws {
         release(accountID: account.id)
+        // BrowserPane retains only a weak WKWebView reference. Removing the
+        // view from its host and then from this pool releases WebKit's owner
+        // before the persistent store is deleted.
         await Task.yield()
         try await sessionManager.deleteDataStore(for: account.dataStoreIdentifier)
+        KeaLogger.sessions.info("Deleted an isolated persistent website data store")
     }
 
     func reload(_ accountID: UUID?) {

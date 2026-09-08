@@ -6,5 +6,7 @@
 - Do not add an X API client, backend, credential storage, DOM scraping, analytics, or telemetry.
 - Do not replace the supplied `AppIcon`, `KeaMark`, or `KeaLogo` artwork.
 - Keep WebKit and UI services MainActor-bound and maintain strict Swift 6 concurrency checks.
+- Serialize destructive session operations per account and keep authentication navigation in the account context without provider hostname allowlists.
+- Use OSLog only and never log account labels, complete URLs, cookies, headers, credentials, or website storage.
 - Avoid third-party dependencies unless a concrete requirement cannot be met with Apple frameworks.
 - Run the macOS build and unit tests before submitting changes. Tests must not rely on live x.com responses.
