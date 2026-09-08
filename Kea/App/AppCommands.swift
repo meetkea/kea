@@ -66,13 +66,17 @@ struct AppCommands: Commands {
 
             Divider()
             Link("Kea Website", destination: AppLinks.website)
+            Button("Support Kea") {
+                AppLinks.openSupport()
+            }
+
+            Divider()
             if let github = AppLinks.github {
                 Link("GitHub", destination: github)
             } else {
                 Button("GitHub") {}
                     .disabled(true)
             }
-            Link("Support Kea", destination: AppLinks.support)
         }
     }
 }
@@ -81,4 +85,10 @@ enum AppLinks {
     static let website = URL(string: "https://usekea.com")!
     static let github = URL(string: "https://github.com/meetkea/kea")
     static let support = URL(string: "https://usekea.com/support")!
+
+    @MainActor
+    static func openSupport() {
+        KeaLogger.app.info("Opening the Kea support page in the default browser")
+        NSWorkspace.shared.open(support)
+    }
 }

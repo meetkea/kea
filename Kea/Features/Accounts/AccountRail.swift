@@ -13,9 +13,11 @@ struct AccountRail: View {
             Image("KeaMark")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 34, height: 34)
-                .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
-                .padding(.bottom, 6)
+                .frame(width: 30, height: 30)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .padding(.vertical, 2)
+                .padding(.bottom, 8)
+                .help("Kea")
                 .accessibilityLabel("Kea")
 
             ScrollView(.vertical) {
@@ -60,27 +62,53 @@ struct AccountRail: View {
             Button {
                 state.isPresentingAddAccount = true
             } label: {
-                Image(systemName: "plus")
-                    .frame(width: 34, height: 34)
+                RailUtilityIcon(systemName: "plus")
             }
             .buttonStyle(.plain)
             .help("Add Account")
             .accessibilityLabel("Add Account")
 
+            Button {
+                AppLinks.openSupport()
+            } label: {
+                RailUtilityIcon(systemName: "heart")
+            }
+            .buttonStyle(.plain)
+            .help("Support Kea")
+            .accessibilityLabel("Support Kea")
+
             SettingsLink {
-                Image(systemName: "gearshape")
-                    .frame(width: 34, height: 34)
+                RailUtilityIcon(systemName: "gearshape")
             }
             .buttonStyle(.plain)
             .help("Settings")
             .accessibilityLabel("Settings")
         }
         .padding(.vertical, 10)
-        .padding(.horizontal, 6)
-        .frame(width: 62)
+        .padding(.horizontal, 5)
+        .frame(width: 58)
         .background(.ultraThinMaterial)
         .overlay(alignment: .trailing) {
             Divider()
         }
+    }
+}
+
+private struct RailUtilityIcon: View {
+    let systemName: String
+    @State private var isHovering = false
+
+    var body: some View {
+        Image(systemName: systemName)
+            .font(.system(size: 14, weight: .medium))
+            .symbolRenderingMode(.hierarchical)
+            .frame(width: 36, height: 36)
+            .background {
+                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                    .fill(isHovering ? Color.primary.opacity(0.08) : .clear)
+            }
+            .contentShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+            .onHover { isHovering = $0 }
+            .animation(.easeOut(duration: 0.12), value: isHovering)
     }
 }
