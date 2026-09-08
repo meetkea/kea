@@ -67,6 +67,7 @@ final class WebViewHost: NSView {
 }
 
 struct BrowserPane: View {
+    @Environment(AuthenticationAccessService.self) private var authentication
     let state: BrowserState
     private let webViewReference: WeakWebViewReference
 
@@ -84,6 +85,32 @@ struct BrowserPane: View {
                     .progressViewStyle(.linear)
                     .controlSize(.small)
                     .transition(.opacity)
+            }
+
+            if state.isAuthenticationPage {
+                HStack(spacing: 8) {
+                    Button {
+                        Task { await authentication.openPasswords() }
+                    } label: {
+                        Label("Open Passwords…", systemImage: "key.fill")
+                    }
+
+                    if authentication.canRequestPasskeyAccess {
+                        Button {
+                            Task { await authentication.requestPasskeyAccess() }
+                        } label: {
+                            Label("Allow Passkeys…", systemImage: "person.badge.key")
+                        }
+                        .disabled(authentication.isRequestingPasskeyAccess)
+                    }
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .padding(10)
+                .background(.regularMaterial, in: Capsule())
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .accessibilityElement(children: .contain)
             }
 
             if let error = state.errorMessage, !state.isLoading {

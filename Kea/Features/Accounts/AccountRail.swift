@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AccountRail: View {
     @Environment(AppState.self) private var state
+    @Environment(AuthenticationAccessService.self) private var authentication
 
     let rename: (AccountProfile) -> Void
     let clearSession: (AccountProfile) -> Void
@@ -39,6 +40,9 @@ struct AccountRail: View {
                             Button("Open Home") {
                                 state.select(account)
                                 state.openHome(for: account)
+                            }
+                            Button("Open Passwords…") {
+                                Task { await authentication.openPasswords() }
                             }
                             Divider()
                             Button("Clear Session…") { clearSession(account) }

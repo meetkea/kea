@@ -9,6 +9,7 @@ enum SafeXURL {
 
     nonisolated private static let sensitivePrefixes = [
         "/i/flow/",
+        "/i/jf/onboarding/",
         "/i/oauth2",
         "/oauth",
         "/login",
@@ -47,6 +48,19 @@ enum SafeXURL {
     nonisolated static func isXHost(_ host: String?) -> Bool {
         guard let host else { return false }
         return allowedHosts.contains(host.lowercased())
+    }
+
+    nonisolated static func isAuthenticationURL(_ url: URL?) -> Bool {
+        guard let url, isXHost(url.host) else { return false }
+
+        let path = url.path.lowercased()
+        if path == "/" || sensitivePrefixes.contains(where: { path.hasPrefix($0) }) {
+            return true
+        }
+
+        let fragment = url.fragment?.lowercased() ?? ""
+        return ["login", "password", "signup", "oauth", "two_factor", "verification"]
+            .contains(where: fragment.contains)
     }
 
     nonisolated private static func isSafe(_ url: URL) -> Bool {

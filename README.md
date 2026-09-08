@@ -18,6 +18,8 @@ Stay signed in to multiple X accounts, switch between them instantly, and keep e
 - Instant account switching without reloading or losing scroll position
 - Native macOS account rail, menus, keyboard shortcuts, and settings
 - Back, Forward, Reload, page zoom, external links, and media file selection
+- System-owned password, passkey, Touch ID, and verification-code flows where macOS and WebKit support them
+- Native access to the Apple Passwords app without reading credentials
 - Local account labels with rename, Clear Session, and Remove Account actions
 - System, Light, and Dark appearance
 - No X API, backend, telemetry, analytics, or third-party dependencies
@@ -56,7 +58,7 @@ Kea uses SwiftUI, SwiftData, and a wrapped `WKWebView`. Every local `AccountProf
 
 ## Privacy
 
-Kea has no backend, telemetry, or analytics. It does not use the X API and never asks for or stores an X password. Authentication and website data remain in WebKit on the Mac. See [docs/PRIVACY.md](docs/PRIVACY.md).
+Kea has no backend, telemetry, or analytics. It does not use the X API and never asks for or stores X credentials. Authentication and website data remain in WebKit and macOS system services on the Mac. See [docs/PRIVACY.md](docs/PRIVACY.md) and [docs/AUTHENTICATION.md](docs/AUTHENTICATION.md).
 
 ## Contributing
 
@@ -75,4 +77,5 @@ Kea is available under the [MIT License](LICENSE).
 - [Kea website](https://usekea.com)
 - [Support Kea](https://usekea.com/support)
 - [Architecture](docs/ARCHITECTURE.md)
+- [Authentication](docs/AUTHENTICATION.md)
 - [Privacy](docs/PRIVACY.md)

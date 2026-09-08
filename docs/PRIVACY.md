@@ -6,7 +6,9 @@ Kea is designed to keep account handling local and simple.
 - Kea includes no telemetry, analytics, or crash-reporting SDK.
 - Kea does not use the X API.
 - Kea application code never asks for, reads, or stores X usernames, passwords, access tokens, or session cookies.
+- Kea does not enumerate passkeys or store passkey identifiers, verification codes, or authentication challenge payloads.
 - Sign-in happens directly on x.com inside Apple's WebKit.
+- Password AutoFill, passkeys, Touch ID, credential-manager UI, and verification-code suggestions remain owned by WebKit and macOS AuthenticationServices where supported.
 - Each account's cookies and website data are managed by a separate persistent WebKit data store on the Mac.
 - SwiftData contains only local Kea metadata such as the account label and browser-profile UUID.
 - Kea does not scrape X pages to identify accounts or collect profile content.

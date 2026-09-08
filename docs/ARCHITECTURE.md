@@ -34,6 +34,12 @@ For `target="_blank"`, Kea either opens a deliberate external destination in the
 
 The native `NSOpenPanel` used for HTML file inputs returns only user-selected URLs and retains no persistent file access. The sandbox's user-selected read-only entitlement is sufficient because uploads only read the chosen media.
 
+## Authentication services
+
+WebKit owns X password, passkey, Touch ID, and two-factor authentication UI. Kea does not implement `WKNavigationDelegate` authentication-challenge handling or inject login JavaScript. `AuthenticationAccessService` reads and, only after an explicit user action, requests the system passkey authorization state through `ASAuthorizationWebBrowserPublicKeyCredentialManager`. It does not enumerate platform credentials or receive credential responses.
+
+The same service resolves and opens the Passwords application by its public bundle identifier using `NSWorkspace`. This is a convenience action only; Kea has no Passwords or Keychain data access. Platform and entitlement limitations are documented in [AUTHENTICATION.md](AUTHENTICATION.md).
+
 ## Persistence boundary
 
 SwiftData stores Kea metadata. `UserDefaults` stores lightweight preferences and the selected account UUID. WebKit alone stores X website data. A last URL is persisted only when it is HTTPS on an X-owned host, is outside login, callback, account-security, and password-reset paths, and contains no recognized temporary credential parameter. Safe query strings and fragments are removed before persistence.

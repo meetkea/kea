@@ -6,6 +6,7 @@ import SwiftUI
 struct KeaApp: App {
     private let persistence: PersistenceController
     @State private var state: AppState
+    @State private var authentication = AuthenticationAccessService()
 
     init() {
         let persistence = PersistenceController.make()
@@ -20,18 +21,20 @@ struct KeaApp: App {
         Window("Kea", id: "main") {
             MainWindowView()
                 .environment(state)
+                .environment(authentication)
                 .modelContainer(persistence.container)
                 .preferredColorScheme(preferredColorScheme)
         }
         .defaultSize(width: 1180, height: 760)
         .windowResizability(.contentMinSize)
         .commands {
-            AppCommands(state: state)
+            AppCommands(state: state, authentication: authentication)
         }
 
         Settings {
             SettingsView()
                 .environment(state)
+                .environment(authentication)
                 .modelContainer(persistence.container)
                 .preferredColorScheme(preferredColorScheme)
         }

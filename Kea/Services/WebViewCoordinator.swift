@@ -9,6 +9,7 @@ final class BrowserState {
     var isLoading = false
     var canGoBack = false
     var canGoForward = false
+    var isAuthenticationPage = false
     var errorMessage: String?
 }
 
@@ -133,6 +134,7 @@ final class WebViewCoordinator: NSObject, WKNavigationDelegate, WKUIDelegate {
     private func updateNavigationState(for webView: WKWebView) {
         state.canGoBack = webView.canGoBack
         state.canGoForward = webView.canGoForward
+        state.isAuthenticationPage = SafeXURL.isAuthenticationURL(webView.url)
     }
 
     private func report(_ error: Error, webView: WKWebView) {

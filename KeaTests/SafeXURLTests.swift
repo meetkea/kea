@@ -26,6 +26,7 @@ final class SafeXURLTests: XCTestCase {
     func testRejectsAuthenticationAndSecurityPaths() {
         let values = [
             "https://x.com/i/flow/login",
+            "https://x.com/i/jf/onboarding/web#/s/login_enter_password/session",
             "https://x.com/i/flow/password_reset",
             "https://x.com/i/oauth2/authorize",
             "https://x.com/callback",
@@ -39,6 +40,15 @@ final class SafeXURLTests: XCTestCase {
             XCTAssertNil(SafeXURL.persistedString(from: URL(string: value)))
             XCTAssertEqual(SafeXURL.restorableURL(from: value), SafeXURL.home)
         }
+    }
+
+    func testRecognizesCurrentXAuthenticationPagesWithoutPersistingTheirURL() {
+        let login = URL(string: "https://x.com/i/jf/onboarding/web#/s/login_enter_password/session")
+        let timeline = URL(string: "https://x.com/home")
+
+        XCTAssertTrue(SafeXURL.isAuthenticationURL(login))
+        XCTAssertFalse(SafeXURL.isAuthenticationURL(timeline))
+        XCTAssertNil(SafeXURL.persistedString(from: login))
     }
 
     func testRejectsTemporaryCredentialParameters() {

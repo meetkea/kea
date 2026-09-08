@@ -4,6 +4,7 @@ import SwiftUI
 struct AppCommands: Commands {
     @Environment(\.openWindow) private var openWindow
     let state: AppState
+    let authentication: AuthenticationAccessService
 
     var body: some Commands {
         CommandMenu("Accounts") {
@@ -52,6 +53,18 @@ struct AppCommands: Commands {
         }
 
         CommandGroup(replacing: .help) {
+            Button("Open Passwords…") {
+                Task { await authentication.openPasswords() }
+            }
+
+            if authentication.canRequestPasskeyAccess {
+                Button("Allow Passkey Access…") {
+                    Task { await authentication.requestPasskeyAccess() }
+                }
+                .disabled(authentication.isRequestingPasskeyAccess)
+            }
+
+            Divider()
             Link("Kea Website", destination: AppLinks.website)
             if let github = AppLinks.github {
                 Link("GitHub", destination: github)

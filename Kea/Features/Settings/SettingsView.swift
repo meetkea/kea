@@ -21,10 +21,52 @@ struct SettingsView: View {
                 .tabItem { Label("General", systemImage: "gearshape") }
             AccountsSettingsView()
                 .tabItem { Label("Accounts", systemImage: "person.2") }
+            AuthenticationSettingsView()
+                .tabItem { Label("Sign-In", systemImage: "key") }
             AboutSettingsView()
                 .tabItem { Label("About", systemImage: "info.circle") }
         }
         .frame(width: 560, height: 390)
+    }
+}
+
+private struct AuthenticationSettingsView: View {
+    @Environment(AuthenticationAccessService.self) private var authentication
+
+    var body: some View {
+        Form {
+            Section("Passkeys") {
+                LabeledContent("Access", value: authentication.passkeyStatusTitle)
+
+                Text(authentication.passkeyStatusDescription)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+
+                if authentication.canRequestPasskeyAccess {
+                    Button("Allow Passkey Access…") {
+                        Task { await authentication.requestPasskeyAccess() }
+                    }
+                    .disabled(authentication.isRequestingPasskeyAccess)
+                }
+            }
+
+            Section("Passwords and Verification Codes") {
+                Text("X, WebKit, and macOS present password suggestions, Touch ID, passkeys, and verification codes. Kea never reads or stores them.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+
+                Button("Open Passwords…") {
+                    Task { await authentication.openPasswords() }
+                }
+            }
+
+            Text("Availability depends on X, WebKit, macOS, and Apple's browser passkey entitlement policy.")
+                .font(.footnote)
+                .foregroundStyle(.tertiary)
+        }
+        .formStyle(.grouped)
+        .padding()
+        .onAppear { authentication.refreshPasskeyStatus() }
     }
 }
 
