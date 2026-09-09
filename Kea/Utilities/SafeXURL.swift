@@ -1,5 +1,21 @@
 import Foundation
 
+enum XDestination: String, CaseIterable, Hashable {
+    case home
+    case notifications
+    case messages
+    case bookmarks
+
+    var url: URL {
+        switch self {
+        case .home: URL(string: "https://x.com/home")!
+        case .notifications: URL(string: "https://x.com/notifications")!
+        case .messages: URL(string: "https://x.com/messages")!
+        case .bookmarks: URL(string: "https://x.com/i/bookmarks")!
+        }
+    }
+}
+
 enum SafeXURL {
     nonisolated static let home = URL(string: "https://x.com/home")!
 

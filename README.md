@@ -16,7 +16,10 @@ Stay signed in to multiple X accounts, switch between them instantly, and keep e
 
 - Separate persistent cookies and website data for every account
 - Instant account switching without reloading or losing scroll position
-- Native macOS account rail, menus, keyboard shortcuts, and settings
+- Per-account colors and optional 256×256 local avatars, never scraped from X
+- Native command palette with account and navigation actions (`⌘K`)
+- Native macOS account rail, Menu Bar Extra, settings, and account shortcuts (`⌘1`…`⌘9`)
+- Optional focused X layout that hides the right suggestions and trends sidebar
 - Back, Forward, Reload, page zoom, external links, and media file selection
 - System-owned password, passkey, Touch ID, and verification-code flows where macOS and WebKit support them
 - Native access to the Apple Passwords app without reading credentials
@@ -67,6 +70,8 @@ Issues and focused pull requests are welcome. Keep the app native, dependency-li
 Before opening a pull request, run both the macOS build and unit tests shown above. Tests must not depend on live x.com responses.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+
+Arbitrary user-recorded account shortcuts are intentionally deferred. Kea currently derives `⌘1`…`⌘9` from visible account order.
 
 ## License
 

@@ -20,27 +20,48 @@ private enum PendingAccountAction: Identifiable {
 
 struct MainWindowView: View {
     @Environment(AppState.self) private var state
+    @Environment(\.openSettings) private var openSettings
 
     @State private var accountToRename: AccountProfile?
     @State private var pendingAction: PendingAccountAction?
 
     var body: some View {
-        HStack(spacing: 0) {
-            AccountRail(
-                rename: { accountToRename = $0 },
-                clearSession: { pendingAction = .clear($0) },
-                remove: { pendingAction = .remove($0) }
-            )
+        ZStack {
+            HStack(spacing: 0) {
+                AccountRail(
+                    rename: { accountToRename = $0 },
+                    changeAvatar: chooseAvatar,
+                    clearSession: { pendingAction = .clear($0) },
+                    remove: { pendingAction = .remove($0) }
+                )
 
-            if let account = state.selectedAccount {
-                BrowserAccountView(account: account)
-                    .id(account.id)
-            } else {
-                BrowserEmptyState {
-                    state.isPresentingAddAccount = true
+                if let account = state.selectedAccount {
+                    BrowserAccountView(account: account)
+                        .id(account.id)
+                } else {
+                    BrowserEmptyState {
+                        state.isPresentingAddAccount = true
+                    }
                 }
             }
+
+            if state.isCommandPalettePresented {
+                Color.black.opacity(0.18)
+                    .ignoresSafeArea()
+                    .onTapGesture { state.isCommandPalettePresented = false }
+
+                CommandPaletteView(
+                    items: commandPaletteItems,
+                    accountForID: { id in state.accounts.first { $0.id == id } },
+                    avatarForAccount: state.avatarImage,
+                    perform: performCommand,
+                    dismiss: { state.isCommandPalettePresented = false }
+                )
+                .padding(24)
+                .transition(.scale(scale: 0.98).combined(with: .opacity))
+            }
         }
+        .animation(.easeOut(duration: 0.12), value: state.isCommandPalettePresented)
         .frame(minWidth: 850, minHeight: 600)
         .sheet(isPresented: Binding(
             get: { state.isPresentingAddAccount },
@@ -90,6 +111,43 @@ struct MainWindowView: View {
             Button("OK") { state.errorMessage = nil }
         } message: {
             Text(state.errorMessage ?? "")
+        }
+    }
+
+    private var commandPaletteItems: [CommandPaletteItem] {
+        CommandPaletteCatalog.items(
+            accounts: state.accounts,
+            hasActiveSession: state.activeSession != nil,
+            canGoBack: state.activeSession?.state.canGoBack == true,
+            canGoForward: state.activeSession?.state.canGoForward == true
+        )
+    }
+
+    private func chooseAvatar(for account: AccountProfile) {
+        guard let url = AvatarPicker.chooseImage() else { return }
+        state.replaceAvatar(for: account, with: url)
+    }
+
+    private func performCommand(_ command: KeaCommand) {
+        state.isCommandPalettePresented = false
+
+        switch command {
+        case .selectAccount(let accountID):
+            state.selectAccountFromCommandPalette(accountID)
+        case .addAccount:
+            state.isPresentingAddAccount = true
+        case .reload:
+            state.reload()
+        case .back:
+            state.goBack()
+        case .forward:
+            state.goForward()
+        case .open(let destination):
+            state.open(destination)
+        case .settings:
+            openSettings()
+        case .support:
+            AppLinks.openSupport()
         }
     }
 

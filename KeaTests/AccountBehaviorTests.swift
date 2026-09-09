@@ -64,21 +64,38 @@ final class AccountBehaviorTests: XCTestCase {
         defer { defaults.removePersistentDomain(forName: suiteName) }
 
         let first = AppPreferences(defaults: defaults)
+        XCTAssertTrue(first.hideXSidebar)
         first.openLastAccount = false
         first.restoreLastPage = false
         first.openExternalLinks = false
         first.appearance = .dark
+        first.showInMenuBar = false
+        first.hideXSidebar = false
 
         let restored = AppPreferences(defaults: defaults)
         XCTAssertFalse(restored.openLastAccount)
         XCTAssertFalse(restored.restoreLastPage)
         XCTAssertFalse(restored.openExternalLinks)
         XCTAssertEqual(restored.appearance, .dark)
+        XCTAssertFalse(restored.showInMenuBar)
+        XCTAssertFalse(restored.hideXSidebar)
     }
 
     func testNewProfilesUseDifferentWebsiteDataStoreIdentifiers() {
         let first = AccountProfile(name: "Personal", sortOrder: 0)
         let second = AccountProfile(name: "Work", sortOrder: 1)
         XCTAssertNotEqual(first.dataStoreIdentifier, second.dataStoreIdentifier)
+    }
+
+    func testAccountShortcutsFollowVisibleOrderingAndStopAtNine() {
+        let accounts = (0..<11).map { index in
+            AccountProfile(name: "Account \(index)", sortOrder: 10 - index)
+        }
+        let ordered = AccountOrdering.sorted(accounts)
+        let assignments = AccountShortcut.assignments(for: ordered)
+
+        XCTAssertEqual(assignments.count, 9)
+        XCTAssertEqual(assignments.map(\.accountID), Array(ordered.prefix(9)).map(\.id))
+        XCTAssertEqual(assignments.map(\.number), Array(1...9))
     }
 }

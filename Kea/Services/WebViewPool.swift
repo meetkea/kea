@@ -39,6 +39,7 @@ final class WebViewPool {
     func session(
         for account: AccountProfile,
         restoreLastPage: Bool,
+        hideXSidebar: Bool,
         openExternalLinks: @escaping () -> Bool,
         onSafeURLChange: @escaping (String?) -> Void
     ) -> BrowserSession {
@@ -55,6 +56,11 @@ final class WebViewPool {
         )
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = sessionManager.dataStore(for: account.dataStoreIdentifier)
+        configuration.userContentController.addUserScript(WKUserScript(
+            source: XPresentationStyle.script(hideRightSidebar: hideXSidebar),
+            injectionTime: .atDocumentEnd,
+            forMainFrameOnly: true
+        ))
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = coordinator
         webView.uiDelegate = coordinator
@@ -104,8 +110,19 @@ final class WebViewPool {
         existingSession(for: accountID)?.webView.reload()
     }
 
+    func setXSidebarHidden(_ hidden: Bool) {
+        let script = XPresentationStyle.script(hideRightSidebar: hidden)
+        for session in sessions.values {
+            session.webView.evaluateJavaScript(script) { _, _ in }
+        }
+    }
+
     func openHome(_ accountID: UUID?) {
-        existingSession(for: accountID)?.webView.load(URLRequest(url: SafeXURL.home))
+        navigate(accountID, to: .home)
+    }
+
+    func navigate(_ accountID: UUID?, to destination: XDestination) {
+        existingSession(for: accountID)?.webView.load(URLRequest(url: destination.url))
     }
 
     func goBack(_ accountID: UUID?) {

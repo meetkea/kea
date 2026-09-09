@@ -26,7 +26,7 @@ struct SettingsView: View {
             AboutSettingsView()
                 .tabItem { Label("About", systemImage: "info.circle") }
         }
-        .frame(width: 560, height: 390)
+        .frame(width: 600, height: 430)
     }
 }
 
@@ -81,6 +81,14 @@ private struct GeneralSettingsView: View {
                 Toggle("Open last active account on launch", isOn: $preferences.openLastAccount)
                 Toggle("Restore last visited X page", isOn: $preferences.restoreLastPage)
                 Toggle("Open external links in the default browser", isOn: $preferences.openExternalLinks)
+                Toggle("Show Kea in Menu Bar", isOn: $preferences.showInMenuBar)
+                Toggle(
+                    "Hide X right sidebar",
+                    isOn: Binding(
+                        get: { preferences.hideXSidebar },
+                        set: { state.setXSidebarHidden($0) }
+                    )
+                )
             }
 
             Section("Appearance") {
@@ -126,17 +134,37 @@ private struct AccountsSettingsView: View {
                     HStack {
                         AccountItemView(
                             account: account,
+                            avatar: state.avatarImage(for: account),
                             isSelected: state.selectedAccountID == account.id
                         )
                         .scaleEffect(0.82)
 
-                        Text(account.name)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(account.name)
+                            Text(account.avatarIdentifier == nil ? "Initial avatar" : "Custom avatar")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                         Spacer()
+
+                        AccountAccentMenu(account: account) { accent in
+                            state.setAccent(accent, for: account)
+                        }
+                        .menuStyle(.borderlessButton)
+                        .fixedSize()
 
                         Menu {
                             Button("Rename…") { accountToRename = account }
+                            Button("Change Avatar…") { chooseAvatar(for: account) }
+                            if account.avatarIdentifier != nil {
+                                Button("Remove Custom Avatar") {
+                                    state.removeCustomAvatar(from: account)
+                                }
+                            }
+                            Divider()
                             Button("Clear Session…") { pendingAction = .clear(account) }
                                 .disabled(state.isSessionOperationInProgress(for: account.id))
+                            Divider()
                             Button("Remove Account…", role: .destructive) { pendingAction = .remove(account) }
                                 .disabled(state.isSessionOperationInProgress(for: account.id))
                         } label: {
@@ -183,6 +211,11 @@ private struct AccountsSettingsView: View {
         } message: {
             Text("Kea will delete the selected account's local WebKit session. This cannot be undone.")
         }
+    }
+
+    private func chooseAvatar(for account: AccountProfile) {
+        guard let url = AvatarPicker.chooseImage() else { return }
+        state.replaceAvatar(for: account, with: url)
     }
 }
 

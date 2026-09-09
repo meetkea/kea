@@ -11,6 +11,7 @@ final class AccountProfile {
     var lastOpenedAt: Date?
     var lastURLString: String?
     var accentIdentifier: String?
+    var avatarIdentifier: String?
 
     init(
         id: UUID = UUID(),
@@ -20,7 +21,8 @@ final class AccountProfile {
         createdAt: Date = Date(),
         lastOpenedAt: Date? = nil,
         lastURLString: String? = nil,
-        accentIdentifier: String? = nil
+        accentIdentifier: String? = nil,
+        avatarIdentifier: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -30,6 +32,7 @@ final class AccountProfile {
         self.lastOpenedAt = lastOpenedAt
         self.lastURLString = lastURLString
         self.accentIdentifier = accentIdentifier
+        self.avatarIdentifier = avatarIdentifier
     }
 }
 

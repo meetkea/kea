@@ -2,9 +2,9 @@ import SwiftUI
 
 struct AccountRail: View {
     @Environment(AppState.self) private var state
-    @Environment(AuthenticationAccessService.self) private var authentication
 
     let rename: (AccountProfile) -> Void
+    let changeAvatar: (AccountProfile) -> Void
     let clearSession: (AccountProfile) -> Void
     let remove: (AccountProfile) -> Void
 
@@ -22,33 +22,47 @@ struct AccountRail: View {
 
             ScrollView(.vertical) {
                 LazyVStack(spacing: 4) {
-                    ForEach(state.accounts) { account in
+                    ForEach(Array(state.accounts.enumerated()), id: \.element.id) { index, account in
                         Button {
                             state.select(account)
                         } label: {
                             AccountItemView(
                                 account: account,
+                                avatar: state.avatarImage(for: account),
                                 isSelected: state.selectedAccountID == account.id
                             )
                         }
                         .buttonStyle(.plain)
-                        .help(account.name)
+                        .help(accountTooltip(account, at: index))
+                        .accessibilityLabel(account.name)
+                        .accessibilityValue(AccountShortcut.hint(at: index) ?? "")
+                        .accessibilityAddTraits(
+                            state.selectedAccountID == account.id ? .isSelected : []
+                        )
                         .contextMenu {
-                            Button("Reload") {
-                                state.select(account)
-                                state.reload()
-                            }
-                            Button("Rename…") { rename(account) }
                             Button("Open Home") {
                                 state.select(account)
                                 state.openHome(for: account)
                             }
-                            Button("Open Passwords…") {
-                                Task { await authentication.openPasswords() }
+                            Button("Reload") {
+                                state.select(account)
+                                state.reload()
+                            }
+                            Divider()
+                            Button("Rename…") { rename(account) }
+                            Button("Change Avatar…") { changeAvatar(account) }
+                            if account.avatarIdentifier != nil {
+                                Button("Remove Custom Avatar") {
+                                    state.removeCustomAvatar(from: account)
+                                }
+                            }
+                            AccountAccentMenu(account: account) { accent in
+                                state.setAccent(accent, for: account)
                             }
                             Divider()
                             Button("Clear Session…") { clearSession(account) }
                                 .disabled(state.isSessionOperationInProgress(for: account.id))
+                            Divider()
                             Button("Remove Account…", role: .destructive) { remove(account) }
                                 .disabled(state.isSessionOperationInProgress(for: account.id))
                         }
@@ -91,6 +105,11 @@ struct AccountRail: View {
         .overlay(alignment: .trailing) {
             Divider()
         }
+    }
+
+    private func accountTooltip(_ account: AccountProfile, at index: Int) -> String {
+        guard let shortcut = AccountShortcut.hint(at: index) else { return account.name }
+        return "\(account.name)  \(shortcut)"
     }
 }
 

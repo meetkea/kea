@@ -31,6 +31,13 @@ struct AppCommands: Commands {
         }
 
         CommandGroup(after: .toolbar) {
+            Button("Search Accounts and Commands…") {
+                openWindow(id: "main")
+                state.isCommandPalettePresented = true
+            }
+            .keyboardShortcut("k", modifiers: .command)
+
+            Divider()
             Button("Back") { state.goBack() }
                 .keyboardShortcut("[", modifiers: .command)
                 .disabled(state.activeSession?.state.canGoBack != true)

@@ -26,6 +26,8 @@ final class AppPreferences {
         static let restoreLastPage = "restoreLastPage"
         static let openExternalLinks = "openExternalLinks"
         static let appearance = "appearance"
+        static let showInMenuBar = "showInMenuBar"
+        static let hideXSidebar = "hideXSidebar"
     }
 
     @ObservationIgnored private let defaults: UserDefaults
@@ -45,6 +47,12 @@ final class AppPreferences {
     var appearance: AppAppearance {
         didSet { defaults.set(appearance.rawValue, forKey: Key.appearance) }
     }
+    var showInMenuBar: Bool {
+        didSet { defaults.set(showInMenuBar, forKey: Key.showInMenuBar) }
+    }
+    var hideXSidebar: Bool {
+        didSet { defaults.set(hideXSidebar, forKey: Key.hideXSidebar) }
+    }
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -53,5 +61,7 @@ final class AppPreferences {
         restoreLastPage = defaults.object(forKey: Key.restoreLastPage) as? Bool ?? true
         openExternalLinks = defaults.object(forKey: Key.openExternalLinks) as? Bool ?? true
         appearance = defaults.string(forKey: Key.appearance).flatMap(AppAppearance.init(rawValue:)) ?? .system
+        showInMenuBar = defaults.object(forKey: Key.showInMenuBar) as? Bool ?? true
+        hideXSidebar = defaults.object(forKey: Key.hideXSidebar) as? Bool ?? true
     }
 }

@@ -2,7 +2,9 @@
 
 ## Account metadata
 
-`AccountProfile` is a SwiftData model containing only Kea-owned metadata: a local label, ordering, timestamps, a safe last X URL, and a unique browser data-store identifier. It never contains an X username, password, token, cookie, or scraped profile data.
+`AccountProfile` is a SwiftData model containing only Kea-owned metadata: a local label, ordering, timestamps, a safe last X URL, optional accent and local-avatar identifiers, and a unique browser data-store identifier. It never contains an X username, password, token, cookie, or scraped profile data. Optional metadata fields allow SwiftData to migrate existing profiles without changing their persistent WebKit identifiers.
+
+`AvatarStorage` center-crops and normalizes a user-selected image to one 256×256 PNG in Kea's sandboxed Application Support directory. SwiftData stores only the generated filename. Replacing or removing an avatar deletes the previous Kea-owned file, account deletion cleans its avatar after metadata is saved, and startup cleanup removes unreferenced files from the dedicated avatar directory. Kea never retains access to the original image.
 
 ## Isolated browser profiles
 
@@ -22,7 +24,7 @@ If one WebKit content process terminates, its coordinator reloads only that acco
 
 ## Session deletion
 
-Clear Session and Remove Account are serialized per account. SwiftUI first replaces the browser with a transition state, and `WebViewPool` stops loading, clears delegates, detaches, and releases the view. Only then does Kea await `WKWebsiteDataStore.remove(forIdentifier:)`.
+Clear Session and Remove Account are serialized per account. SwiftUI first replaces the browser with a transition state, and `WebViewPool` stops loading, clears delegates, detaches, and releases the view. Only then does Kea await `WKWebsiteDataStore.remove(forIdentifier:)`. Because WebKit's network process can briefly retain a store after its final web view is released, removal uses a short bounded retry schedule before reporting failure; Kea never deletes the account metadata until WebKit confirms that the store is gone.
 
 Clear Session keeps the SwiftData record, clears the safe last URL, immediately creates a fresh store with the same profile identifier, and loads `x.com/home`. Remove Account deletes the SwiftData record only after WebKit confirms store deletion. If store deletion fails, metadata remains and Kea reconstructs the account view. Repeated operations for the same account are ignored while one is in progress.
 
@@ -33,6 +35,10 @@ Normal X navigation and non-user-initiated redirects remain inside the account's
 For `target="_blank"`, Kea either opens a deliberate external destination in the default browser or loads the request in the current account view. It never creates a hidden or default-store `WKWebView`.
 
 The native `NSOpenPanel` used for HTML file inputs returns only user-selected URLs and retains no persistent file access. The sandbox's user-selected read-only entitlement is sufficient because uploads only read the chosen media.
+
+The native command palette and Menu Bar Extra call the same `AppState` and `WebViewPool` actions as the account rail and application menus. Selecting an already loaded account only changes the selected UUID and reattaches its retained view; it does not create or reload the `WKWebView`. Palette navigation uses typed, fixed X destinations rather than duplicating WebKit navigation policy.
+
+The optional focused-layout preference injects a static presentation stylesheet that hides X's right layout column and lets the primary column use the available width. It toggles one class on the document root, does not read or transmit page content, and never inspects login fields. The script is installed on each account's existing WebKit configuration without changing its persistent data store.
 
 ## Authentication services
 

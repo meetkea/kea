@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Observation
 import SwiftData
@@ -9,20 +10,25 @@ final class AppState {
     private(set) var sessionOperationAccountIDs: Set<UUID> = []
     var selectedAccountID: UUID?
     var isPresentingAddAccount = false
+    var isCommandPalettePresented = false
     var errorMessage: String?
 
     let preferences: AppPreferences
     let webViewPool: WebViewPool
+    let avatarStorage: AvatarStorage
 
     @ObservationIgnored private let modelContext: ModelContext
 
     init(
         modelContext: ModelContext,
         preferences: AppPreferences = AppPreferences(),
+        avatarStorage: AvatarStorage = AvatarStorage(),
+        performAvatarCleanup: Bool = false,
         startupError: String? = nil
     ) {
         self.modelContext = modelContext
         self.preferences = preferences
+        self.avatarStorage = avatarStorage
         webViewPool = WebViewPool()
         errorMessage = startupError
         refreshAccounts()
@@ -35,6 +41,10 @@ final class AppState {
             selectedAccountID = accounts.first?.id
         }
         preferences.selectedAccountID = selectedAccountID
+
+        if performAvatarCleanup, startupError == nil {
+            cleanupOrphanedAvatars()
+        }
     }
 
     var selectedAccount: AccountProfile? {
@@ -56,6 +66,12 @@ final class AppState {
     func selectAccount(at index: Int) {
         guard accounts.indices.contains(index) else { return }
         select(accounts[index])
+    }
+
+    func selectAccountFromCommandPalette(_ accountID: UUID) {
+        guard let account = accounts.first(where: { $0.id == accountID }) else { return }
+        select(account)
+        isCommandPalettePresented = false
     }
 
     func addAccount(named rawName: String) {
@@ -96,11 +112,72 @@ final class AppState {
         }
     }
 
+    func setAccent(_ accent: AccountAccent, for account: AccountProfile) {
+        let previousIdentifier = account.accentIdentifier
+        account.accentIdentifier = accent.storedIdentifier
+
+        do {
+            try modelContext.save()
+            refreshAccounts()
+            KeaLogger.accounts.info("Changed local account accent")
+        } catch {
+            account.accentIdentifier = previousIdentifier
+            modelContext.rollback()
+            refreshAccounts()
+            KeaLogger.accounts.error("Failed to persist a local account accent")
+            errorMessage = "Kea could not change that account color."
+        }
+    }
+
+    func replaceAvatar(for account: AccountProfile, with sourceURL: URL) {
+        let previousIdentifier = account.avatarIdentifier
+        var newIdentifier: String?
+
+        do {
+            newIdentifier = try avatarStorage.saveAvatar(from: sourceURL)
+            account.avatarIdentifier = newIdentifier
+            try modelContext.save()
+            try? avatarStorage.deleteAvatar(previousIdentifier)
+            refreshAccounts()
+            KeaLogger.accounts.info("Changed a local account avatar")
+        } catch {
+            account.avatarIdentifier = previousIdentifier
+            modelContext.rollback()
+            try? avatarStorage.deleteAvatar(newIdentifier)
+            refreshAccounts()
+            KeaLogger.accounts.error("Failed to save a local account avatar")
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func removeCustomAvatar(from account: AccountProfile) {
+        guard let previousIdentifier = account.avatarIdentifier else { return }
+        account.avatarIdentifier = nil
+
+        do {
+            try modelContext.save()
+            try? avatarStorage.deleteAvatar(previousIdentifier)
+            refreshAccounts()
+            KeaLogger.accounts.info("Removed a local account avatar")
+        } catch {
+            account.avatarIdentifier = previousIdentifier
+            modelContext.rollback()
+            refreshAccounts()
+            KeaLogger.accounts.error("Failed to remove a local account avatar")
+            errorMessage = "Kea could not remove that custom avatar."
+        }
+    }
+
+    func avatarImage(for account: AccountProfile) -> NSImage? {
+        avatarStorage.image(for: account.avatarIdentifier)
+    }
+
     func remove(_ account: AccountProfile) async {
         guard sessionOperationAccountIDs.insert(account.id).inserted else { return }
         defer { sessionOperationAccountIDs.remove(account.id) }
 
         let previousSelection = selectedAccountID
+        let avatarIdentifier = account.avatarIdentifier
         let hadLoadedSession = webViewPool.existingSession(for: account.id) != nil
         var storeWasDeleted = false
 
@@ -117,6 +194,7 @@ final class AppState {
             storeWasDeleted = true
             modelContext.delete(account)
             try modelContext.save()
+            try? avatarStorage.deleteAvatar(avatarIdentifier)
             refreshAccounts()
             KeaLogger.accounts.info("Removed a local account profile and its isolated session")
         } catch {
@@ -169,6 +247,7 @@ final class AppState {
         webViewPool.session(
             for: account,
             restoreLastPage: preferences.restoreLastPage,
+            hideXSidebar: preferences.hideXSidebar,
             openExternalLinks: { [weak self] in self?.preferences.openExternalLinks ?? true },
             onSafeURLChange: { [weak self, weak account] value in
                 guard let self, let account else { return }
@@ -179,7 +258,12 @@ final class AppState {
     }
 
     func reload() { webViewPool.reload(selectedAccountID) }
+    func setXSidebarHidden(_ hidden: Bool) {
+        preferences.hideXSidebar = hidden
+        webViewPool.setXSidebarHidden(hidden)
+    }
     func openHome(for account: AccountProfile) { webViewPool.openHome(account.id) }
+    func open(_ destination: XDestination) { webViewPool.navigate(selectedAccountID, to: destination) }
     func goBack() { webViewPool.goBack(selectedAccountID) }
     func goForward() { webViewPool.goForward(selectedAccountID) }
     func zoomIn() { webViewPool.zoom(selectedAccountID, delta: 0.1) }
@@ -212,6 +296,15 @@ final class AppState {
             if reportUserError {
                 errorMessage = "Kea could not save that change."
             }
+        }
+    }
+
+    private func cleanupOrphanedAvatars() {
+        let identifiers = Set(accounts.compactMap(\.avatarIdentifier))
+        do {
+            try avatarStorage.cleanupOrphans(keeping: identifiers)
+        } catch {
+            KeaLogger.accounts.error("Failed to clean orphaned local avatar files")
         }
     }
 }
