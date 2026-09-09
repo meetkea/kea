@@ -34,6 +34,7 @@ struct CommandPaletteItem: Identifiable, Hashable {
 enum CommandPaletteCatalog {
     static func items(
         accounts: [AccountProfile],
+        canAddAccount: Bool,
         hasActiveSession: Bool,
         canGoBack: Bool,
         canGoForward: Bool
@@ -60,7 +61,7 @@ enum CommandPaletteCatalog {
                 shortcutHint: "⇧⌘A",
                 searchTerms: ["new", "profile"],
                 command: .addAccount,
-                isEnabled: true
+                isEnabled: canAddAccount
             )
         ]
 

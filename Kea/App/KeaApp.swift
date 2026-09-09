@@ -103,8 +103,10 @@ private struct KeaMenuBarView: View {
         }
         Button("Add Account") {
             openMainWindow()
-            state.isPresentingAddAccount = true
+            state.requestAddAccount()
         }
+        .disabled(!state.canAddAccount)
+        .help(state.addAccountHelpText)
         Button("Support Kea") {
             AppLinks.openSupport()
         }

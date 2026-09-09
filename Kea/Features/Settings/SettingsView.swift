@@ -119,8 +119,10 @@ private struct AccountsSettingsView: View {
                 Spacer()
                 Button("Add Account") {
                     openWindow(id: "main")
-                    state.isPresentingAddAccount = true
+                    state.requestAddAccount()
                 }
+                .disabled(!state.canAddAccount)
+                .help(state.addAccountHelpText)
             }
 
             if state.accounts.isEmpty {

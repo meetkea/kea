@@ -4,6 +4,8 @@
 
 `AccountProfile` is a SwiftData model containing only Kea-owned metadata: a local label, ordering, timestamps, a safe last X URL, optional accent and local-avatar identifiers, and a unique browser data-store identifier. It never contains an X username, password, token, cookie, or scraped profile data. Optional metadata fields allow SwiftData to migrate existing profiles without changing their persistent WebKit identifiers.
 
+`AccountLimit.maximumAccountCount` is the single source for the temporary alpha limit. `AppState` enforces it before presenting or saving a new account, while menus and views use the same state to communicate availability. Existing profiles above the limit remain accessible and unchanged; only additional creation is blocked.
+
 `AvatarStorage` center-crops and normalizes a user-selected image to one 256×256 PNG in Kea's sandboxed Application Support directory. SwiftData stores only the generated filename. Replacing or removing an avatar deletes the previous Kea-owned file, account deletion cleans its avatar after metadata is saved, and startup cleanup removes unreferenced files from the dedicated avatar directory. Kea never retains access to the original image.
 
 ## Isolated browser profiles

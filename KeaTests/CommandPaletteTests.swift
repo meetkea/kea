@@ -8,6 +8,7 @@ final class CommandPaletteTests: XCTestCase {
         let account = AccountProfile(name: "Recern", sortOrder: 0)
         let items = CommandPaletteCatalog.items(
             accounts: [account],
+            canAddAccount: true,
             hasActiveSession: true,
             canGoBack: false,
             canGoForward: false
@@ -44,6 +45,7 @@ final class CommandPaletteTests: XCTestCase {
     func testPaletteHidesBrowserActionsWithoutActiveSession() {
         let items = CommandPaletteCatalog.items(
             accounts: [],
+            canAddAccount: true,
             hasActiveSession: false,
             canGoBack: false,
             canGoForward: false
@@ -53,5 +55,21 @@ final class CommandPaletteTests: XCTestCase {
         XCTAssertFalse(items.contains { $0.command == .open(.home) })
         XCTAssertTrue(items.contains { $0.command == .addAccount })
         XCTAssertTrue(items.contains { $0.command == .settings })
+    }
+
+    func testPaletteDisablesAddAccountAtTheLimit() throws {
+        let accounts = (0..<AccountLimit.maximumAccountCount).map {
+            AccountProfile(name: "Account \($0)", sortOrder: $0)
+        }
+        let items = CommandPaletteCatalog.items(
+            accounts: accounts,
+            canAddAccount: false,
+            hasActiveSession: false,
+            canGoBack: false,
+            canGoForward: false
+        )
+
+        let addAccount = try XCTUnwrap(items.first { $0.command == .addAccount })
+        XCTAssertFalse(addAccount.isEnabled)
     }
 }

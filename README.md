@@ -20,6 +20,7 @@ Stay signed in to multiple X accounts, switch between them instantly, and keep e
 - Native command palette with account and navigation actions (`⌘K`)
 - Native macOS account rail, Menu Bar Extra, settings, and account shortcuts (`⌘1`…`⌘9`)
 - Optional focused X layout that hides the right suggestions and trends sidebar
+- Temporary alpha limit of five accounts to keep switching fast and memory usage predictable
 - Back, Forward, Reload, page zoom, external links, and media file selection
 - System-owned password, passkey, Touch ID, and verification-code flows where macOS and WebKit support them
 - Native access to the Apple Passwords app without reading credentials

@@ -21,9 +21,11 @@ struct AppCommands: Commands {
 
             Button("Add Account…") {
                 openWindow(id: "main")
-                state.isPresentingAddAccount = true
+                state.requestAddAccount()
             }
             .keyboardShortcut("a", modifiers: [.command, .shift])
+            .disabled(!state.canAddAccount)
+            .help(state.addAccountHelpText)
 
             SettingsLink {
                 Text("Manage Accounts…")

@@ -55,6 +55,18 @@ final class AppState {
         webViewPool.existingSession(for: selectedAccountID)
     }
 
+    var canAddAccount: Bool {
+        AccountLimit.allowsAddingAccount(currentCount: accounts.count)
+    }
+
+    var addAccountHelpText: String {
+        canAddAccount ? "Add Account" : AccountLimit.helpText
+    }
+
+    var errorTitle: String {
+        errorMessage == AccountLimit.alertMessage ? AccountLimit.alertTitle : "Kea"
+    }
+
     func select(_ account: AccountProfile) {
         guard accounts.contains(where: { $0.id == account.id }) else { return }
         selectedAccountID = account.id
@@ -74,7 +86,20 @@ final class AppState {
         isCommandPalettePresented = false
     }
 
+    func requestAddAccount() {
+        guard canAddAccount else {
+            errorMessage = AccountLimit.alertMessage
+            return
+        }
+        isPresentingAddAccount = true
+    }
+
     func addAccount(named rawName: String) {
+        guard canAddAccount else {
+            isPresentingAddAccount = false
+            errorMessage = AccountLimit.alertMessage
+            return
+        }
         guard let name = AccountName.normalized(rawName) else { return }
 
         let nextSortOrder = (accounts.map(\.sortOrder).max() ?? -1) + 1

@@ -74,12 +74,13 @@ struct AccountRail: View {
             Spacer(minLength: 8)
 
             Button {
-                state.isPresentingAddAccount = true
+                state.requestAddAccount()
             } label: {
                 RailUtilityIcon(systemName: "plus")
             }
             .buttonStyle(.plain)
-            .help("Add Account")
+            .disabled(!state.canAddAccount)
+            .help(state.addAccountHelpText)
             .accessibilityLabel("Add Account")
 
             Button {

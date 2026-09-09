@@ -40,7 +40,7 @@ struct MainWindowView: View {
                         .id(account.id)
                 } else {
                     BrowserEmptyState {
-                        state.isPresentingAddAccount = true
+                        state.requestAddAccount()
                     }
                 }
             }
@@ -104,7 +104,7 @@ struct MainWindowView: View {
         } message: {
             Text(confirmationMessage)
         }
-        .alert("Kea", isPresented: Binding(
+        .alert(state.errorTitle, isPresented: Binding(
             get: { state.errorMessage != nil },
             set: { if !$0 { state.errorMessage = nil } }
         )) {
@@ -117,6 +117,7 @@ struct MainWindowView: View {
     private var commandPaletteItems: [CommandPaletteItem] {
         CommandPaletteCatalog.items(
             accounts: state.accounts,
+            canAddAccount: state.canAddAccount,
             hasActiveSession: state.activeSession != nil,
             canGoBack: state.activeSession?.state.canGoBack == true,
             canGoForward: state.activeSession?.state.canGoForward == true
@@ -135,7 +136,7 @@ struct MainWindowView: View {
         case .selectAccount(let accountID):
             state.selectAccountFromCommandPalette(accountID)
         case .addAccount:
-            state.isPresentingAddAccount = true
+            state.requestAddAccount()
         case .reload:
             state.reload()
         case .back:
